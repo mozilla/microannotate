@@ -168,8 +168,11 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
 def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
     if os.path.exists(repo_out_dir):
         repo = pygit2.Repository(repo_out_dir)
-        last_commit_hash = utils.get_original_hash(repo, "HEAD")
-        rev_start = f"children({last_commit_hash})"
+        try:
+            last_commit_hash = utils.get_original_hash(repo, "HEAD")
+            rev_start = f"children({last_commit_hash})"
+        except KeyError:
+            pass
     else:
         os.makedirs(repo_out_dir)
         repo = pygit2.init_repository(repo_out_dir)

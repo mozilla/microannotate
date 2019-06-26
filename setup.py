@@ -31,7 +31,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     include_package_data=True,
     license="MPL2",
-    scripts=["microannotate-generate.py", "microannotate.py"],
+    scripts=["bin/microannotate-generate.py", "bin/microannotate-view.py"],
     classifiers=[
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3 :: Only",

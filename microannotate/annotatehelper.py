@@ -4,7 +4,7 @@
 
 import collections
 
-import utils
+from microannotate import utils
 
 
 class Commit(object):

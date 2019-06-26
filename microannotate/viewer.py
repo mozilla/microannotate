@@ -3,7 +3,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import argparse
 import collections
 import os
 import random
@@ -12,11 +11,10 @@ import subprocess
 import hglib
 import pygit2
 
-import annotatehelper
-import utils
+from microannotate import annotatehelper, utils
 
 
-def go(repository_dir, rev, path):
+def html(repository_dir, rev, path):
     repository_dir = os.path.realpath(repository_dir)
 
     repo = pygit2.Repository(repository_dir)
@@ -102,18 +100,4 @@ def go(repository_dir, rev, path):
     </html>
     """
 
-    print(html)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("repository_dir", help="Path to the repository", action="store")
-    parser.add_argument(
-        "path", help="Path to the file in the repository", action="store"
-    )
-    parser.add_argument(
-        "rev", help="Start annotating from this revision", action="store"
-    )
-    args = parser.parse_args()
-
-    go(args.repository_dir, args.rev, args.path)
+    return html

@@ -3,7 +3,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import argparse
 import concurrent.futures
 import itertools
 import os
@@ -13,7 +12,7 @@ import hglib
 import pygit2
 from tqdm import tqdm
 
-import utils
+from microannotate import utils
 
 
 class Commit:
@@ -166,7 +165,7 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
     return x.splitlines()
 
 
-def download_commits(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
+def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
     if os.path.exists(repo_out_dir):
         repo = pygit2.Repository(repo_out_dir)
         last_commit_hash = utils.get_original_hash(repo, "HEAD")
@@ -208,30 +207,3 @@ def download_commits(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
                 convert(repo, commit)
             except Exception:
                 f.write(f"{commit.node} - {commit.parents}\n")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "repository_dir", help="Path to the input repository", action="store"
-    )
-    parser.add_argument(
-        "repository_out_dir", help="Path to the output repository", action="store"
-    )
-    parser.add_argument(
-        "--rev-start",
-        help="Which revision to start with (0 by default)",
-        action="store",
-        default="0",
-    )
-    parser.add_argument(
-        "--rev-end",
-        help="Which revision to end with (tip by default)",
-        action="store",
-        default="tip",
-    )
-    args = parser.parse_args()
-
-    repo_out_dir = os.path.realpath(args.repository_out_dir)
-
-    download_commits(args.repository_dir, repo_out_dir, args.rev_start, args.rev_end)

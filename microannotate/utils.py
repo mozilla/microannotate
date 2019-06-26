@@ -11,7 +11,6 @@ ORIGINAL_COMMIT_REGEX = re.compile("UltraBlame original commit: ([0-9a-f]{40})")
 
 
 def get_original_hash(repo, rev):
-    print(rev)
     if pygit2.reference_is_valid_name(rev):
         commit = repo.lookup_reference(rev).peel()
     else:

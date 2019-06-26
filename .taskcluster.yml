@@ -5,6 +5,14 @@ tasks:
   $let:
     user: ${event.sender.login}
 
+    head_branch:
+      $if: 'tasks_for == "github-pull-request"'
+      then: ${event.pull_request.head.ref}
+      else:
+        $if: 'tasks_for == "github-push"'
+        then: ${event.ref}
+        else: ${event.release.target_commitish}
+
     head_rev:
       $if: 'tasks_for == "github-pull-request"'
       then: ${event.pull_request.head.sha}
@@ -63,3 +71,59 @@ tasks:
           description: microannotate packaging test
           owner: ${user}@users.noreply.github.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
+
+      - $if: 'tasks_for == "github-push"'
+        then:
+          taskId: {$eval: as_slugid("version_check_task")}
+          created: {$fromNow: ''}
+          deadline: {$fromNow: '1 hour'}
+          provisionerId: aws-provisioner-v1
+          workerType: github-worker
+          payload:
+            maxRunTime: 3600
+            image: python
+            command:
+              - "/bin/bash"
+              - "-lcx"
+              - "git clone --quiet ${repository} &&
+                 cd microannotate &&
+                 git -c advice.detachedHead=false checkout ${head_rev} &&
+                 python infra/version_check.py"
+          metadata:
+            name: microannotate tag version check
+            description: microannotate tag version check
+            owner: ${user}@users.noreply.github.com
+            source: ${repository}/raw/${head_rev}/.taskcluster.yml
+
+      - $if: 'tasks_for == "github-push" && head_branch[:10] == "refs/tags/"'
+        then:
+          dependencies:
+            - {$eval: as_slugid("lint_task")}
+            - {$eval: as_slugid("packaging_test_task")}
+            - {$eval: as_slugid("version_check_task")}
+          scopes:
+            - secrets:get:project/relman/microannotate/deploy
+          created: {$fromNow: ''}
+          deadline: {$fromNow: '1 hour'}
+          provisionerId: aws-provisioner-v1
+          workerType: github-worker
+          payload:
+            features:
+              taskclusterProxy:
+                true
+            maxRunTime: 3600
+            image: python
+            command:
+              - "/bin/bash"
+              - "-lcx"
+              - "git clone --quiet ${repository} &&
+                 cd microannotate &&
+                 git -c advice.detachedHead=false checkout ${head_rev} &&
+                 python setup.py sdist &&
+                 pip install --quiet twine &&
+                 python infra/pypi.py"
+          metadata:
+            name: microannotate PyPI release
+            description: microannotate PyPI release
+            owner: ${user}@users.noreply.github.com
+            source: ${repository}/raw/${head_rev}/.taskcluster.yml

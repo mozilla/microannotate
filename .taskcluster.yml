@@ -41,3 +41,25 @@ tasks:
           description: microannotate lint
           owner: ${user}@users.noreply.github.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
+
+      - taskId: {$eval: as_slugid("packaging_test_task")}
+        created: {$fromNow: ''}
+        deadline: {$fromNow: '1 hour'}
+        provisionerId: aws-provisioner-v1
+        workerType: github-worker
+        payload:
+          maxRunTime: 3600
+          image: python
+          command:
+            - "/bin/bash"
+            - "-lcx"
+            - "git clone --quiet ${repository} &&
+               cd microannotate &&
+               git -c advice.detachedHead=false checkout ${head_rev} &&
+               python setup.py sdist &&
+               pip install dist/microannotate-$(cat VERSION).tar.gz"
+        metadata:
+          name: microannotate packaging test
+          description: microannotate packaging test
+          owner: ${user}@users.noreply.github.com
+          source: ${repository}/raw/${head_rev}/.taskcluster.yml

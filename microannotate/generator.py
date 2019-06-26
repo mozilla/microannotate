@@ -200,6 +200,8 @@ def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
 
     print(f"Converting {commits_num} commits...")
 
+    cwd = os.getcwd()
+
     with open("errors.txt", "a", buffering=1) as f:
         _init(repo_dir)
         for commit in tqdm(commits):
@@ -207,3 +209,5 @@ def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
                 convert(repo, commit)
             except Exception:
                 f.write(f"{commit.node} - {commit.parents}\n")
+
+    os.chdir(cwd)

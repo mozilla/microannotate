@@ -165,7 +165,7 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
     return x.splitlines()
 
 
-def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
+def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip", limit=None):
     if os.path.exists(repo_out_dir):
         repo = pygit2.Repository(repo_out_dir)
         try:
@@ -183,6 +183,9 @@ def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip"):
         assert (
             len(revs) > 0
         ), "There should definitely be more than 0 commits, something is wrong"
+
+    if limit is not None:
+        revs = revs[:limit]
 
     print(f"Mining {len(revs)} commits...")
 

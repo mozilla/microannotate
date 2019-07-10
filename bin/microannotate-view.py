@@ -19,4 +19,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    viewer.html(args.repository_dir, args.rev, args.path)
+    print(viewer.html(args.repository_dir, args.rev, args.path))

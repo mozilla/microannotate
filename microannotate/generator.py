@@ -184,7 +184,11 @@ def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip", limit=None):
             len(revs) > 0
         ), "There should definitely be more than 0 commits, something is wrong"
 
+    all_commits_done = True
     if limit is not None:
+        if len(revs) > limit:
+            all_commits_done = False
+
         revs = revs[:limit]
 
     print(f"Mining {len(revs)} commits...")
@@ -214,3 +218,5 @@ def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip", limit=None):
                 f.write(f"{commit.node} - {commit.parents}\n")
 
     os.chdir(cwd)
+
+    return all_commits_done

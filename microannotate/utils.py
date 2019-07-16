@@ -4,6 +4,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+import socket
 
 import pygit2
 
@@ -17,3 +18,11 @@ def get_original_hash(repo, rev):
         commit = repo[rev]
 
     return ORIGINAL_COMMIT_REGEX.search(commit.message).group(1)
+
+
+def get_free_tcp_port():
+    tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp.bind(("", 0))
+    addr, port = tcp.getsockname()
+    tcp.close()
+    return port

@@ -29,8 +29,17 @@ if __name__ == "__main__":
         action="store",
         default="tip",
     )
+    parser.add_argument("--tokenize", action="store_true", default=True)
+    parser.add_argument("--remove-comments", action="store_true", default=False)
     args = parser.parse_args()
 
     repo_out_dir = os.path.realpath(args.repository_out_dir)
 
-    generator.generate(args.repository_dir, repo_out_dir, args.rev_start, args.rev_end)
+    generator.generate(
+        args.repository_dir,
+        repo_out_dir,
+        args.rev_start,
+        args.rev_end,
+        args.tokenize,
+        args.remove_comments,
+    )

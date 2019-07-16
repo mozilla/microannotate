@@ -1,3 +1,4 @@
 python-hglib==2.6.1
 pygit2==0.28.2
 tqdm==4.32.2
+requests==2.22.0

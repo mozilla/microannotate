@@ -209,9 +209,6 @@ def generate(
         for _ in range(7):
             try:
                 code_analysis_port = utils.get_free_tcp_port()
-                print(
-                    ["rust-code-analysis", "--serve", "--port", str(code_analysis_port)]
-                )
                 proc = subprocess.Popen(
                     ["rust-code-analysis", "--serve", "--port", str(code_analysis_port)]
                 )

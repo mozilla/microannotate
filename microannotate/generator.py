@@ -107,7 +107,11 @@ def convert(repo, commit, tokenize, remove_comments, code_analysis_port):
             try:
                 r = requests.post(
                     f"http://localhost:{code_analysis_port}/comment",
-                    json={"id": "42", "file_name": after_path, "code": content},
+                    json={
+                        "id": "42",
+                        "file_name": after_path,
+                        "code": content.decode("utf-8", "ignore"),
+                    },
                 )
                 if r.ok:
                     content = r.json()["code"].encode("utf-8")

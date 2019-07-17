@@ -110,8 +110,15 @@ def convert(repo, commit, tokenize, remove_comments, code_analysis_port):
                     headers={"Content-Type": "text/plain"},
                     data=content,
                 )
+
+                # The server returns 200 when successful and 204 when no comments have been removed.
+
                 if r.status_code == 200:
                     content = r.text.encode("utf-8")
+                elif r.status_code != 204:
+                    logger.info(
+                        f"Error {r.status_code} from the code analysis server, for {after_path} on {commit.node}: {r.text}"
+                    )
             except requests.exceptions.ConnectionError as e:
                 # The code analysis server currently doesn't respond when we pass an unsupported language.
                 logger.info(

@@ -106,17 +106,14 @@ def convert(repo, commit, tokenize, remove_comments, code_analysis_port):
         if remove_comments:
             try:
                 r = requests.post(
-                    f"http://localhost:{code_analysis_port}/comment",
-                    json={
-                        "id": "42",
-                        "file_name": after_path,
-                        "code": content.decode("utf-8", "ignore"),
-                    },
+                    f"http://localhost:{code_analysis_port}/comment?file_name={after_path}",
+                    headers={"Content-Type": "text/plain"},
+                    data=content,
                 )
                 if r.ok:
-                    content = r.json()["code"].encode("utf-8")
+                    content = r.text.encode("utf-8")
             except requests.exceptions.ConnectionError as e:
-                # The code analysis server currently doesn't respond when we pass an unsupported language
+                # The code analysis server currently doesn't respond when we pass an unsupported language.
                 logger.info(f"Error connecting to code analysis server: {e}")
                 pass
 

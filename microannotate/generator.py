@@ -111,11 +111,11 @@ def convert(repo, commit, tokenize, remove_comments, code_analysis_port):
                     data=content,
                 )
 
-                # The server returns 200 when successful and 204 when no comments have been removed.
+                # The server returns 200 when successful, 204 when no comments have been removed and 404 when an extension is not supported.
 
                 if r.status_code == 200:
                     content = r.text.encode("utf-8")
-                elif r.status_code != 204:
+                elif r.status_code not in [204, 404]:
                     logger.info(
                         f"Error {r.status_code} from the code analysis server, for {after_path} on {commit.node}: {r.text}"
                     )

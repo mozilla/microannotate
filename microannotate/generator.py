@@ -217,15 +217,8 @@ def generate(
 
             for _ in range(7):
                 try:
-                    r = requests.post(
-                        f"http://localhost:{code_analysis_port}/comment",
-                        json={
-                            "id": "42",
-                            "file_name": "main.cpp",
-                            "code": "// comment\nvoid main() { return 0; }",
-                        },
-                    )
-                    assert r.json()["code"] == "\nvoid main() { return 0; }"
+                    r = requests.get(f"http://localhost:{code_analysis_port}/ping")
+                    r.raise_for_status()
                     ready = True
                     break
                 except Exception:

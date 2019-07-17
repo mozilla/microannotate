@@ -7,12 +7,19 @@ import concurrent.futures
 import itertools
 import os
 import re
+import subprocess
+import time
+from logging import INFO, basicConfig, getLogger
 
 import hglib
 import pygit2
+import requests
 from tqdm import tqdm
 
 from microannotate import utils
+
+basicConfig(level=INFO)
+logger = getLogger(__name__)
 
 
 class Commit:
@@ -59,7 +66,7 @@ def set_modified_files(commit):
 SPLIT_WORD_REGEX = re.compile(rb"(\w+|{|}|\[|\]|\"|'|\(|\)|\\\\|\*|#|/)")
 
 
-def convert(repo, commit):
+def convert(repo, commit, tokenize, remove_comments, code_analysis_port):
     set_modified_files(commit)
 
     copy_target_paths = set(commit.file_copies.values())
@@ -81,7 +88,7 @@ def convert(repo, commit):
         _, ext = os.path.splitext(after_path)
 
         try:
-            after = HG.cat([after_path], rev=commit.node)
+            content = HG.cat([after_path], rev=commit.node)
         except hglib.error.CommandError as e:
             if b"no such file in rev" in e.err:
                 # The file was removed.
@@ -96,10 +103,36 @@ def convert(repo, commit):
             os.path.dirname(os.path.join(repo.workdir, after_path)), exist_ok=True
         )
 
+        if remove_comments:
+            try:
+                r = requests.post(
+                    f"http://localhost:{code_analysis_port}/comment?file_name={after_path}",
+                    headers={"Content-Type": "text/plain"},
+                    data=content,
+                )
+
+                # The server returns 200 when successful, 204 when no comments have been removed and 404 when an extension is not supported.
+
+                if r.status_code == 200:
+                    content = r.text.encode("utf-8")
+                elif r.status_code not in [204, 404]:
+                    logger.info(
+                        f"Error {r.status_code} from the code analysis server, for {after_path} on {commit.node}: {r.text}"
+                    )
+            except requests.exceptions.ConnectionError as e:
+                # The code analysis server currently doesn't respond when we pass an unsupported language.
+                logger.info(
+                    f"Error connecting to code analysis server, for {after_path} on {commit.node}: {e}"
+                )
+                pass
+
         with open(os.path.join(repo.workdir, after_path), "wb") as f:
-            f.writelines(
-                word.group(0) + b"\n" for word in SPLIT_WORD_REGEX.finditer(after)
-            )
+            if tokenize:
+                f.writelines(
+                    word.group(0) + b"\n" for word in SPLIT_WORD_REGEX.finditer(content)
+                )
+            else:
+                f.write(content)
 
         index.add(after_path)
 
@@ -165,7 +198,46 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
     return x.splitlines()
 
 
-def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip", limit=None):
+def generate(
+    repo_dir,
+    repo_out_dir,
+    rev_start=0,
+    rev_end="tip",
+    limit=None,
+    tokenize=True,
+    remove_comments=False,
+):
+    proc = None
+    code_analysis_port = None
+    if remove_comments:
+        ready = False
+
+        for _ in range(7):
+            try:
+                code_analysis_port = utils.get_free_tcp_port()
+                proc = subprocess.Popen(
+                    ["rust-code-analysis", "--serve", "--port", str(code_analysis_port)]
+                )
+            except FileNotFoundError:
+                raise Exception("rust-code-analysis is required for comment removal")
+
+            for _ in range(7):
+                try:
+                    r = requests.get(f"http://localhost:{code_analysis_port}/ping")
+                    r.raise_for_status()
+                    ready = True
+                    break
+                except Exception:
+                    if proc.poll() is not None:
+                        break
+
+                    time.sleep(1)
+
+            if ready:
+                break
+
+        assert ready, "rust-code-analysis should be able to start"
+
     if os.path.exists(repo_out_dir):
         repo = pygit2.Repository(repo_out_dir)
         try:
@@ -213,10 +285,14 @@ def generate(repo_dir, repo_out_dir, rev_start=0, rev_end="tip", limit=None):
         _init(repo_dir)
         for commit in tqdm(commits):
             try:
-                convert(repo, commit)
-            except Exception:
+                convert(repo, commit, tokenize, remove_comments, code_analysis_port)
+            except Exception as e:
+                print(e)
                 f.write(f"{commit.node} - {commit.parents}\n")
 
     os.chdir(cwd)
+
+    if proc is not None:
+        proc.terminate()
 
     return all_commits_done

@@ -110,11 +110,13 @@ def convert(repo, commit, tokenize, remove_comments, code_analysis_port):
                     headers={"Content-Type": "text/plain"},
                     data=content,
                 )
-                if r.ok:
+                if r.status_code == 200:
                     content = r.text.encode("utf-8")
             except requests.exceptions.ConnectionError as e:
                 # The code analysis server currently doesn't respond when we pass an unsupported language.
-                logger.info(f"Error connecting to code analysis server: {e}")
+                logger.info(
+                    f"Error connecting to code analysis server, for {after_path} on {commit.node}: {e}"
+                )
                 pass
 
         with open(os.path.join(repo.workdir, after_path), "wb") as f:

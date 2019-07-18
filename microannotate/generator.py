@@ -54,22 +54,11 @@ def _init_thread(repo_dir):
 
 
 def set_modified_files(commit):
-    template = '{join(files,"|")}\\0{join(file_copies,"|")}\\0'
+    template = '{join(files,"|")}'
     args = hglib.util.cmdbuilder(
         b"log", template=template, rev=commit.node.encode("ascii")
     )
-    x = HG.rawcommand(args)
-    files_str, file_copies_str = x.split(b"\x00")[:-1]
-
-    commit.file_copies = file_copies = {}
-    for file_copy in file_copies_str.split(b"|"):
-        if not file_copy:
-            continue
-
-        parts = file_copy.split(b" (")
-        copied = parts[0]
-        orig = parts[1][:-1]
-        file_copies[orig] = copied
+    files_str = HG.rawcommand(args)
 
     commit.files = files_str.split(b"|")
 

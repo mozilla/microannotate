@@ -202,20 +202,9 @@ class Generator:
     async def convert(self, commit):
         set_modified_files(commit)
 
-        copy_target_paths = set(commit.file_copies.values())
-
-        before_after_paths = []
-        for path in commit.files:
-            if path in commit.file_copies:
-                before_after_paths.append((path, commit.file_copies[path]))
-            elif path not in copy_target_paths:
-                before_after_paths.append((path, path))
-
         logger.info(f"Transforming commit {commit.node}")
 
-        write_file_futures = [
-            self.write_file(commit, after_path) for _, after_path in before_after_paths
-        ]
+        write_file_futures = [self.write_file(commit, path) for path in commit.files]
 
         results = await asyncio.gather(*write_file_futures, return_exceptions=True)
 

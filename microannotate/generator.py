@@ -9,6 +9,7 @@ import itertools
 import os
 import re
 import subprocess
+import threading
 import time
 from logging import INFO, basicConfig, getLogger
 
@@ -22,6 +23,9 @@ from microannotate import utils
 
 basicConfig(level=INFO)
 logger = getLogger(__name__)
+
+
+thread_local = threading.local()
 
 
 class Commit:
@@ -38,10 +42,15 @@ class Commit:
         return hash(self.node)
 
 
-def _init(repo_dir):
+def _init_process(repo_dir):
     global HG
     os.chdir(repo_dir)
     HG = hglib.open(".")
+
+
+def _init_thread(repo_dir):
+    os.chdir(repo_dir)
+    thread_local.hg = hglib.open(".")
 
 
 def set_modified_files(commit):
@@ -96,7 +105,7 @@ def hg_cat(hg, path, rev):
 
 
 def _hg_cat(path, rev):
-    return hg_cat(HG, path, rev)
+    return hg_cat(thread_local.hg, path, rev)
 
 
 def get_revs(hg, rev_start=0, rev_end="tip"):
@@ -313,7 +322,7 @@ class Generator:
             ]
 
             with concurrent.futures.ProcessPoolExecutor(
-                initializer=_init, initargs=(self.repo_dir,)
+                initializer=_init_process, initargs=(self.repo_dir,)
             ) as executor:
                 commits = executor.map(_hg_log, revs_groups, chunksize=20)
                 commits = tqdm(commits, total=len(revs_groups))
@@ -326,13 +335,13 @@ class Generator:
             cwd = os.getcwd()
 
             with concurrent.futures.ThreadPoolExecutor(
-                initializer=_init, initargs=(self.repo_dir,)
+                initializer=_init_thread, initargs=(self.repo_dir,)
             ) as executor:
                 loop = asyncio.get_running_loop()
                 loop.set_default_executor(executor)
 
                 with open("errors.txt", "a", buffering=1) as f:
-                    _init(self.repo_dir)
+                    _init_process(self.repo_dir)
                     for commit in tqdm(commits):
                         try:
                             await self.convert(commit)

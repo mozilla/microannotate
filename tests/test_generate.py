@@ -435,3 +435,58 @@ int main() {
     return 0;
 }"""
         )
+
+
+def test_generate_comments_removed_unusupporte_extension(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.surely_unsupported",
+        """#include <iostream>
+
+/* main */
+int main() {
+    return 0;
+}""",
+    )
+    revision1 = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=False,
+        remove_comments=True,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.surely_unsupported
+
+UltraBlame original commit: {revision1}"""
+    )
+
+    with open(os.path.join(git_repo, "file.surely_unsupported"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#include <iostream>
+
+/* main */
+int main() {
+    return 0;
+}"""
+        )

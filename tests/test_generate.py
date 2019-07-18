@@ -180,6 +180,183 @@ str
         )
 
 
+def test_generate_progressive(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.cpp",
+        """#include <iostream>
+
+/* main */
+int main() {
+    return 0;
+}""",
+    )
+    revision1 = commit(hg)
+
+    add_file(
+        hg,
+        local,
+        "file.cpp",
+        """#include <iostream>
+
+/* main */
+int main() {
+    cout << "Hello, world!";
+    return 0;
+}""",
+    )
+    add_file(
+        hg,
+        local,
+        "file.jsm",
+        """function ciao(str) {
+  // Comment one
+  console.log(str);
+}""",
+    )
+    revision2 = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end=revision1,
+        limit=None,
+        tokenize=True,
+        remove_comments=False,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert len(commits) == 1
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.cpp
+
+UltraBlame original commit: {revision1}"""
+    )
+
+    with open(os.path.join(git_repo, "file.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#
+include
+iostream
+/
+*
+main
+*
+/
+int
+main
+(
+)
+{
+return
+0
+}
+"""
+        )
+
+    assert not os.path.exists(os.path.join(git_repo, "file.jsm"))
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=True,
+        remove_comments=False,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert len(commits) == 2
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.cpp
+
+UltraBlame original commit: {revision1}"""
+    )
+
+    assert (
+        commits[1].message
+        == f"""Commit M file.cpp A file.jsm
+
+UltraBlame original commit: {revision2}"""
+    )
+
+    with open(os.path.join(git_repo, "file.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#
+include
+iostream
+/
+*
+main
+*
+/
+int
+main
+(
+)
+{
+cout
+"
+Hello
+world
+"
+return
+0
+}
+"""
+        )
+
+    with open(os.path.join(git_repo, "file.jsm"), "r") as f:
+        js_file = f.read()
+        assert (
+            js_file
+            == """function
+ciao
+(
+str
+)
+{
+/
+/
+Comment
+one
+console
+log
+(
+str
+)
+}
+"""
+        )
+
+
 def test_generate_comments_removed(fake_hg_repo, tmpdir):
     hg, local = fake_hg_repo
 

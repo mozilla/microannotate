@@ -116,7 +116,7 @@ tasks:
                git -c advice.detachedHead=false checkout ${head_rev} &&
                pip install --quiet -r requirements.txt &&
                pip install --quiet -r test-requirements.txt &&
-               python -m pytest tests/test_*.py"
+               python -m pytest -s -vv tests/test_*.py"
         metadata:
           name: microannotate tests
           description: microannotate tests

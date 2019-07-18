@@ -864,3 +864,126 @@ UltraBlame original commit: {revision2}"""
         ["git", "show", "HEAD"], cwd=git_repo, capture_output=True, check=True
     )
     assert b"diff --git a/file.cpp b/file.cpp\ndeleted file mode 100644" in proc.stdout
+
+
+def test_generate_copied_and_moved_file(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.cpp",
+        """#include <iostream>
+
+/* main */
+int main() {
+    return 0;
+}""",
+    )
+    add_file(
+        hg,
+        local,
+        "file2.cpp",
+        """#include <stdio.h>
+
+/* main2 */
+void main() {
+    return 42;
+}""",
+    )
+    revision1 = commit(hg)
+
+    hg.copy(
+        bytes(os.path.join(local, "file.cpp"), "ascii"),
+        bytes(os.path.join(local, "filecopy.cpp"), "ascii"),
+    )
+    revision2 = commit(hg)
+
+    hg.move(
+        bytes(os.path.join(local, "file2.cpp"), "ascii"),
+        bytes(os.path.join(local, "file2move.cpp"), "ascii"),
+    )
+    revision3 = commit(hg)
+
+    assert os.path.exists(os.path.join(local, "file.cpp"))
+    assert os.path.exists(os.path.join(local, "filecopy.cpp"))
+    assert not os.path.exists(os.path.join(local, "file2.cpp"))
+    assert os.path.exists(os.path.join(local, "file2move.cpp"))
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=False,
+        remove_comments=True,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.cpp A file2.cpp
+
+UltraBlame original commit: {revision1}"""
+    )
+
+    assert (
+        commits[1].message
+        == f"""Commit A filecopy.cpp
+
+UltraBlame original commit: {revision2}"""
+    )
+
+    assert (
+        commits[2].message
+        == f"""Commit A file2move.cpp R file2.cpp
+
+UltraBlame original commit: {revision3}"""
+    )
+
+    with open(os.path.join(git_repo, "file.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#include <iostream>
+
+
+int main() {
+    return 0;
+}"""
+        )
+
+    assert not os.path.exists(os.path.join(git_repo, "file2.cpp"))
+
+    with open(os.path.join(git_repo, "filecopy.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#include <iostream>
+
+
+int main() {
+    return 0;
+}"""
+        )
+
+    with open(os.path.join(git_repo, "file2move.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#include <stdio.h>
+
+
+void main() {
+    return 42;
+}"""
+        )

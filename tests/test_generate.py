@@ -4,6 +4,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import subprocess
 
 import hglib
 import pygit2
@@ -37,6 +38,12 @@ def add_file(hg, repo_dir, name, contents):
         f.write(contents)
 
     hg.add(files=[bytes(path, "ascii")])
+
+
+def remove_file(hg, repo_dir, name):
+    path = os.path.join(repo_dir, name)
+
+    hg.remove(files=[bytes(path, "ascii")])
 
 
 def commit(hg):
@@ -618,3 +625,65 @@ return
 }
 """
         )
+
+
+def test_generate_removed_file(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.cpp",
+        """#include <iostream>
+
+/* main */
+int main() {
+    return 0;
+}""",
+    )
+    revision1 = commit(hg)
+
+    remove_file(hg, local, "file.cpp")
+    revision2 = commit(hg)
+
+    assert not os.path.exists(os.path.join(local, "file.cpp"))
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=True,
+        remove_comments=True,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.cpp
+
+UltraBlame original commit: {revision1}"""
+    )
+
+    assert (
+        commits[1].message
+        == f"""Commit R file.cpp
+
+UltraBlame original commit: {revision2}"""
+    )
+
+    assert not os.path.exists(os.path.join(git_repo, "file.cpp"))
+
+    proc = subprocess.run(
+        ["git", "show", "HEAD"], cwd=git_repo, capture_output=True, check=True
+    )
+    assert b"diff --git a/file.cpp b/file.cpp\ndeleted file mode 100644" in proc.stdout

@@ -48,8 +48,7 @@ def _init_process(repo_dir):
     HG = hglib.open(".")
 
 
-def _init_thread(repo_dir):
-    os.chdir(repo_dir)
+def _init_thread():
     thread_local.hg = hglib.open(".")
 
 
@@ -311,9 +310,10 @@ class Generator:
             logger.info(f"Converting {commits_num} commits...")
 
             cwd = os.getcwd()
+            os.chdir(self.repo_dir)
 
             with concurrent.futures.ThreadPoolExecutor(
-                initializer=_init_thread, initargs=(self.repo_dir,)
+                initializer=_init_thread
             ) as executor:
                 loop = asyncio.get_running_loop()
                 loop.set_default_executor(executor)

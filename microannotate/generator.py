@@ -6,7 +6,6 @@
 import asyncio
 import concurrent.futures
 import itertools
-import multiprocessing
 import os
 import re
 import subprocess
@@ -298,7 +297,7 @@ class Generator:
             ]
 
             with concurrent.futures.ThreadPoolExecutor(
-                initializer=_init_thread, max_workers=multiprocessing.cpu_count() + 1
+                initializer=_init_thread, max_workers=os.cpu_count() + 1
             ) as executor:
                 commits = executor.map(_hg_log, revs_groups)
                 commits = tqdm(commits, total=len(revs_groups))

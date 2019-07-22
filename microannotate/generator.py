@@ -44,22 +44,16 @@ class Commit:
         return hash(self.node)
 
 
-def _init_process(repo_dir):
-    global HG
-    os.chdir(repo_dir)
-    HG = hglib.open(".")
-
-
 def _init_thread():
     thread_local.hg = hglib.open(".")
 
 
-def set_modified_files(commit):
+def set_modified_files(hg, commit):
     template = '{join(files,"|")}'
     args = hglib.util.cmdbuilder(
         b"log", template=template, rev=commit.node.encode("ascii")
     )
-    files_str = HG.rawcommand(args)
+    files_str = hg.rawcommand(args)
 
     commit.files = files_str.split(b"|")
 
@@ -189,8 +183,8 @@ class Generator:
 
         self.repo.index.add(path)
 
-    async def convert(self, commit):
-        set_modified_files(commit)
+    async def convert(self, hg, commit):
+        set_modified_files(hg, commit)
 
         logger.info(f"Transforming commit {commit.node}")
 
@@ -317,15 +311,15 @@ class Generator:
                 loop = asyncio.get_running_loop()
                 loop.set_default_executor(executor)
 
-                with open("errors.txt", "a", buffering=1) as f:
-                    _init_process(self.repo_dir)
-                    for commit in tqdm(commits):
-                        try:
-                            await self.convert(commit)
-                        except Exception as e:
-                            logger.error(f"Error during transformation: {e}")
-                            traceback.print_exc()
-                            f.write(f"{commit.node} - {commit.parents}\n")
+                with hglib.open(".") as hg:
+                    with open("errors.txt", "a", buffering=1) as f:
+                        for commit in tqdm(commits):
+                            try:
+                                await self.convert(hg, commit)
+                            except Exception as e:
+                                logger.error(f"Error during transformation: {e}")
+                                traceback.print_exc()
+                                f.write(f"{commit.node} - {commit.parents}\n")
 
             os.chdir(cwd)
 

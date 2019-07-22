@@ -327,7 +327,8 @@ class Generator:
 
             os.chdir(cwd)
 
-            for hg_server in hg_servers:
+            while len(hg_servers) > 0:
+                hg_server = hg_servers.pop()
                 hg_server.close()
 
             if proc is not None:

@@ -26,6 +26,8 @@ basicConfig(level=INFO)
 logger = getLogger(__name__)
 
 
+hg_servers = list()
+hg_servers_lock = threading.Lock()
 thread_local = threading.local()
 
 
@@ -44,7 +46,10 @@ class Commit:
 
 
 def _init_thread():
-    thread_local.hg = hglib.open(".")
+    hg_server = hglib.open(".")
+    thread_local.hg = hg_server
+    with hg_servers_lock:
+        hg_servers.append(hg_server)
 
 
 def set_modified_files(hg, commit):
@@ -321,6 +326,9 @@ class Generator:
                                 f.write(f"{commit.node} - {commit.parents}\n")
 
             os.chdir(cwd)
+
+            for hg_server in hg_servers:
+                hg_server.close()
 
             if proc is not None:
                 proc.terminate()

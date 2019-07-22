@@ -195,7 +195,9 @@ class Generator:
 
         logger.info(f"Transforming commit {commit.node}")
 
-        write_file_futures = [self.write_file(commit, path) for path in commit.files]
+        write_file_futures = [
+            self.write_file(commit, path) for path in commit.files if path != ""
+        ]
 
         results = await asyncio.gather(*write_file_futures, return_exceptions=True)
 

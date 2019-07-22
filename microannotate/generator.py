@@ -6,6 +6,7 @@
 import asyncio
 import concurrent.futures
 import itertools
+import multiprocessing
 import os
 import re
 import subprocess
@@ -314,7 +315,7 @@ class Generator:
             os.chdir(self.repo_dir)
 
             with concurrent.futures.ThreadPoolExecutor(
-                initializer=_init_thread
+                initializer=_init_thread, max_workers=multiprocessing.cpu_count() + 1
             ) as executor:
                 loop = asyncio.get_running_loop()
                 loop.set_default_executor(executor)

@@ -11,6 +11,7 @@ import re
 import subprocess
 import threading
 import time
+import traceback
 from logging import INFO, basicConfig, getLogger
 
 import aiofiles
@@ -325,6 +326,7 @@ class Generator:
                             await self.convert(commit)
                         except Exception as e:
                             logger.error(f"Error during transformation: {e}")
+                            traceback.print_exc()
                             f.write(f"{commit.node} - {commit.parents}\n")
 
             os.chdir(cwd)

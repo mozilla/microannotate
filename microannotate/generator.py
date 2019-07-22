@@ -162,7 +162,10 @@ class Generator:
         except hglib.error.CommandError as e:
             if b"no such file in rev" in e.err:
                 # The file was removed.
-                os.remove(os.path.join(self.repo.workdir, path.decode("ascii")))
+                try:
+                    os.remove(os.path.join(self.repo.workdir, path.decode("ascii")))
+                except FileNotFoundError:
+                    logger.warn(f"Tried to remove file {path}, but it didn't exist")
                 self.repo.index.remove(path)
                 return
             else:

@@ -87,7 +87,7 @@ def hg_log(hg, revs):
 
 
 def _hg_log(revs):
-    return hg_log(HG, revs)
+    return hg_log(thread_local.hg, revs)
 
 
 def hg_cat(hg, path, rev):
@@ -295,28 +295,25 @@ class Generator:
 
             logger.info(f"Mining {len(revs)} commits...")
 
+            cwd = os.getcwd()
+            os.chdir(self.repo_dir)
+
             CHUNK_SIZE = 256
             revs_groups = [
                 revs[i : (i + CHUNK_SIZE)] for i in range(0, len(revs), CHUNK_SIZE)
             ]
 
-            with concurrent.futures.ProcessPoolExecutor(
-                initializer=_init_process, initargs=(self.repo_dir,)
-            ) as executor:
-                commits = executor.map(_hg_log, revs_groups, chunksize=20)
-                commits = tqdm(commits, total=len(revs_groups))
-                commits = list(itertools.chain.from_iterable(commits))
-
-            commits_num = len(commits)
-
-            logger.info(f"Converting {commits_num} commits...")
-
-            cwd = os.getcwd()
-            os.chdir(self.repo_dir)
-
             with concurrent.futures.ThreadPoolExecutor(
                 initializer=_init_thread, max_workers=multiprocessing.cpu_count() + 1
             ) as executor:
+                commits = executor.map(_hg_log, revs_groups)
+                commits = tqdm(commits, total=len(revs_groups))
+                commits = list(itertools.chain.from_iterable(commits))
+
+                commits_num = len(commits)
+
+                logger.info(f"Converting {commits_num} commits...")
+
                 loop = asyncio.get_running_loop()
                 loop.set_default_executor(executor)
 

@@ -285,10 +285,6 @@ class Generator:
             with hglib.open(self.repo_dir) as hg:
                 revs = get_revs(hg, self.rev_start, self.rev_end)
 
-                assert (
-                    len(revs) > 0
-                ), "There should definitely be more than 0 commits, something is wrong"
-
             all_commits_done = True
             if self.limit is not None:
                 if len(revs) > self.limit:

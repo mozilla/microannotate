@@ -10,7 +10,7 @@ import hglib
 import pygit2
 import pytest
 
-from microannotate import generator
+from microannotate import generator, utils
 
 
 @pytest.fixture
@@ -178,6 +178,17 @@ str
 }
 """
         )
+
+    assert utils.get_original_hash(repo, "HEAD") == revision2
+    assert utils.get_original_hash(repo, commits[0].hex) == revision1
+    assert utils.get_original_hash(repo, commits[1].hex) == revision2
+    transformed_to_original, original_to_transformed = utils.get_commit_mapping(
+        git_repo
+    )
+    assert transformed_to_original[commits[0].hex] == revision1
+    assert transformed_to_original[commits[1].hex] == revision2
+    assert original_to_transformed[revision1] == commits[0].hex
+    assert original_to_transformed[revision2] == commits[1].hex
 
 
 def test_generate_progressive(fake_hg_repo, tmpdir):

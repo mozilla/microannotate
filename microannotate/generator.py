@@ -166,7 +166,15 @@ class Generator:
                     os.remove(os.path.join(self.repo.workdir, path.decode("ascii")))
                 except FileNotFoundError:
                     logger.warn(f"Tried to remove file {path}, but it didn't exist")
-                self.repo.index.remove(path)
+
+                try:
+                    self.repo.index.remove(path)
+                except OSError as e:
+                    if str(e).startswith("index does not contain"):
+                        logger.warn(
+                            f"Tried to remove file {path} from the index, but it didn't exist"
+                        )
+
                 return
             else:
                 raise

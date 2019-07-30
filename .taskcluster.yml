@@ -43,7 +43,7 @@ tasks:
                cd microannotate &&
                git -c advice.detachedHead=false checkout ${head_rev} &&
                pip install --quiet -r test-requirements.txt &&
-               pre-commit run -a" # TODO Be smarter and run only on modified files
+               pre-commit run -a"
         metadata:
           name: microannotate lint
           description: microannotate lint

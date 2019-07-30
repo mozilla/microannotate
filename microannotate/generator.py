@@ -141,13 +141,13 @@ class Generator:
                 # The server returns 200 when successful, 204 when no comments have been removed and
                 # 404 when an extension is not supported.
 
-                text = await r.text()
+                text = await r.read()
 
                 if r.status == 200:
-                    content = text.encode("utf-8")
+                    content = text
                 elif r.status not in [204, 404]:
                     logger.error(
-                        f"Error {r.status} from the code analysis server, for {path}: {text}"
+                        f"Error {r.status} from the code analysis server, for {path}: {text.decode('utf-8')}"
                     )
         except aiohttp.ClientConnectionError as e:
             logger.error(f"Error connecting to code analysis server, for {path}: {e}")

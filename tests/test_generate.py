@@ -998,3 +998,60 @@ void main() {
     return 42;
 }"""
         )
+
+
+def test_generate_comments_removed_utf_char(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.cpp",
+        """#include <iostream>
+
+/* Á main */
+int main() {
+    cout << "Á" << endl;
+    return 0;
+}""",
+    )
+    revision = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=False,
+        remove_comments=True,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.cpp
+
+UltraBlame original commit: {revision}"""
+    )
+
+    with open(os.path.join(git_repo, "file.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#include <iostream>
+
+
+int main() {
+    cout << "Á" << endl;
+    return 0;
+}"""
+        )

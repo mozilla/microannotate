@@ -134,7 +134,9 @@ UltraBlame original commit: {revision2}"""
             cpp_file
             == """#
 include
+<
 iostream
+>
 /
 *
 main
@@ -146,9 +148,12 @@ main
 )
 {
 cout
+<
+<
 "
 Hello
 world
+!
 "
 return
 0
@@ -171,6 +176,7 @@ str
 Comment
 one
 console
+.
 log
 (
 str
@@ -264,7 +270,9 @@ UltraBlame original commit: {revision1}"""
             cpp_file
             == """#
 include
+<
 iostream
+>
 /
 *
 main
@@ -322,7 +330,9 @@ UltraBlame original commit: {revision2}"""
             cpp_file
             == """#
 include
+<
 iostream
+>
 /
 *
 main
@@ -334,9 +344,12 @@ main
 )
 {
 cout
+<
+<
 "
 Hello
 world
+!
 "
 return
 0
@@ -359,6 +372,7 @@ str
 Comment
 one
 console
+.
 log
 (
 str
@@ -542,16 +556,21 @@ UltraBlame original commit: {revision2}"""
             cpp_file
             == """#
 include
+<
 iostream
+>
 int
 main
 (
 )
 {
 cout
+<
+<
 "
 Hello
 world
+!
 "
 return
 0
@@ -570,6 +589,7 @@ str
 )
 {
 console
+.
 log
 (
 str
@@ -679,7 +699,9 @@ UltraBlame original commit: {revision1}"""
             cpp_file
             == """#
 include
+<
 iostream
+>
 int
 main
 (
@@ -797,7 +819,9 @@ UltraBlame original commit: {revision1}"""
             cpp_file
             == """#
 include
+<
 iostream
+>
 /
 *
 main
@@ -1054,4 +1078,122 @@ int main() {
     cout << "Á" << endl;
     return 0;
 }"""
+        )
+
+
+def test_generate_tokenized_operators(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.cpp",
+        """#include <iostream>
+
+/* main */
+int main() {
+    if (ciao > 0 && ciao.obj <= 7 && ciao.obj->prova < 42 && !bo) {
+      return 1 + 1 * 41 + 0 / 3 + 3 % 5 - x ^ 3;
+    }
+    return 0;
+}""",
+    )
+    revision = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=True,
+        remove_comments=False,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.cpp
+
+UltraBlame original commit: {revision}"""
+    )
+
+    with open(os.path.join(git_repo, "file.cpp"), "r") as f:
+        cpp_file = f.read()
+        assert (
+            cpp_file
+            == """#
+include
+<
+iostream
+>
+/
+*
+main
+*
+/
+int
+main
+(
+)
+{
+if
+(
+ciao
+>
+0
+&
+&
+ciao
+.
+obj
+<
+7
+&
+&
+ciao
+.
+obj
+-
+>
+prova
+<
+42
+&
+&
+!
+bo
+)
+{
+return
+1
++
+1
+*
+41
++
+0
+/
+3
++
+3
+%
+5
+-
+x
+^
+3
+}
+return
+0
+}
+"""
         )

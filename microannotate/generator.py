@@ -113,7 +113,7 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
 # A regex to split source code by word (where a word can be a variable, a token,
 # or a subset of a token).
 SPLIT_WORD_REGEX = re.compile(
-    rb"(\w+|{|}|\[|\]|\"|'|\(|\)|\\\\|\*|#|/|\.|-|<|>|&|!|\+|%)"
+    rb"(\w+|{|}|\[|\]|\"|'|\(|\)|\\\\|\*|#|/|\.|-|<|>|&|!|\+|%|\^)"
 )
 
 

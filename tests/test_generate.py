@@ -1095,7 +1095,7 @@ def test_generate_tokenized_operators(fake_hg_repo, tmpdir):
 /* main */
 int main() {
     if (ciao > 0 && ciao.obj <= 7 && ciao.obj->prova < 42 && !bo) {
-      return 1 + 1 * 41 + 0 / 3 + 3 % 5;
+      return 1 + 1 * 41 + 0 / 3 + 3 % 5 - x ^ 3;
     }
     return 0;
 }""",
@@ -1187,6 +1187,10 @@ return
 3
 %
 5
+-
+x
+^
+3
 }
 return
 0

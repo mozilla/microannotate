@@ -110,7 +110,9 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
     return x.splitlines()
 
 
-SPLIT_WORD_REGEX = re.compile(rb"(\w+|{|}|\[|\]|\"|'|\(|\)|\\\\|\*|#|/)")
+SPLIT_WORD_REGEX = re.compile(
+    rb"(\w+|{|}|\[|\]|\"|'|\(|\)|\\\\|\*|#|/|\.|-|<|>|&|!|\+|%)"
+)
 
 
 class Generator:

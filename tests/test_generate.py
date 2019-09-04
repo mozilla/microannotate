@@ -155,8 +155,10 @@ Hello
 world
 !
 "
+;
 return
 0
+;
 }
 """
         )
@@ -181,6 +183,7 @@ log
 (
 str
 )
+;
 }
 """
         )
@@ -285,6 +288,7 @@ main
 {
 return
 0
+;
 }
 """
         )
@@ -351,8 +355,10 @@ Hello
 world
 !
 "
+;
 return
 0
+;
 }
 """
         )
@@ -377,6 +383,7 @@ log
 (
 str
 )
+;
 }
 """
         )
@@ -572,8 +579,10 @@ Hello
 world
 !
 "
+;
 return
 0
+;
 }
 """
         )
@@ -594,6 +603,7 @@ log
 (
 str
 )
+;
 }
 """
         )
@@ -709,6 +719,7 @@ main
 {
 return
 0
+;
 }
 """
         )
@@ -834,6 +845,7 @@ main
 {
 return
 0
+;
 }
 """
         )
@@ -1094,8 +1106,9 @@ def test_generate_tokenized_operators(fake_hg_repo, tmpdir):
 
 /* main */
 int main() {
-    if (ciao > 0 && ciao.obj <= 7 && ciao.obj->prova < 42 && !bo) {
-      return 1 + 1 * 41 + 0 / 3 + 3 % 5 - x ^ 3;
+    if (ciao > 0 && ciao.obj <= 7 && ciao.obj->prova < 42 || !bo) {
+      int x = ciao ? 1 : 2;
+      return 1 + 1 * 41 + 0 / ~3 + 3 % 5 - x ^ 3;
     }
     return 0;
 }""",
@@ -1156,6 +1169,7 @@ ciao
 .
 obj
 <
+=
 7
 &
 &
@@ -1167,12 +1181,21 @@ obj
 prova
 <
 42
-&
-&
+|
+|
 !
 bo
 )
 {
+int
+x
+=
+ciao
+?
+1
+:
+2
+;
 return
 1
 +
@@ -1182,6 +1205,7 @@ return
 +
 0
 /
+~
 3
 +
 3
@@ -1191,9 +1215,11 @@ return
 x
 ^
 3
+;
 }
 return
 0
+;
 }
 """
         )

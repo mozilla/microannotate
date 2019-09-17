@@ -47,7 +47,7 @@ tasks:
         metadata:
           name: microannotate lint
           description: microannotate lint
-          owner: ${user}@users.noreply.github.com
+          owner: mcastelluccio@mozilla.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
 
       - taskId: {$eval: as_slugid("packaging_test_task")}
@@ -69,7 +69,7 @@ tasks:
         metadata:
           name: microannotate packaging test
           description: microannotate packaging test
-          owner: ${user}@users.noreply.github.com
+          owner: mcastelluccio@mozilla.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
 
       - $if: 'tasks_for == "github-push"'
@@ -92,7 +92,7 @@ tasks:
           metadata:
             name: microannotate tag version check
             description: microannotate tag version check
-            owner: ${user}@users.noreply.github.com
+            owner: mcastelluccio@mozilla.com
             source: ${repository}/raw/${head_rev}/.taskcluster.yml
 
       - taskId: {$eval: as_slugid("tests_task")}
@@ -120,7 +120,7 @@ tasks:
         metadata:
           name: microannotate tests
           description: microannotate tests
-          owner: ${user}@users.noreply.github.com
+          owner: mcastelluccio@mozilla.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
 
       - $if: 'tasks_for == "github-push" && head_branch[:10] == "refs/tags/"'
@@ -154,5 +154,5 @@ tasks:
           metadata:
             name: microannotate PyPI release
             description: microannotate PyPI release
-            owner: ${user}@users.noreply.github.com
+            owner: mcastelluccio@mozilla.com
             source: ${repository}/raw/${head_rev}/.taskcluster.yml

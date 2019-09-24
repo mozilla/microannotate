@@ -171,8 +171,14 @@ POSSIBLE_TOKENS = [
     ";",
 ]
 
+POSSIBLE_TOKENS_REGEX_STR = "|".join(re.escape(c) for c in POSSIBLE_TOKENS)
+
 SPLIT_WORD_REGEX = re.compile(
-    r"(\w+|{})".format("|".join(re.escape(c) for c in POSSIBLE_TOKENS)).encode("utf-8")
+    r"(\w+|{})".format(POSSIBLE_TOKENS_REGEX_STR).encode("utf-8"), re.MULTILINE
+)
+
+SPLIT_WORD_STARTING_WHITESPACES_REGEX = re.compile(
+    r"(^[ \t]+|\w+|{})".format(POSSIBLE_TOKENS_REGEX_STR).encode("utf-8"), re.MULTILINE
 )
 
 
@@ -253,26 +259,14 @@ class Generator:
 
         async with aiofiles.open(os.path.join(self.repo.workdir, path), "wb") as f:
             if self.tokenize_enabled:
-                if not path.endswith(".py"):
-                    lines = (
-                        word.group(0) + b"\n"
-                        for word in SPLIT_WORD_REGEX.finditer(content)
-                    )
-                else:
-                    # In Python files, whitespaces are meaningful when used for defining
-                    # indentation, so we should not ignore them.
-                    lines = []
-                    words = list(SPLIT_WORD_REGEX.finditer(content))
-                    for i, word in enumerate(words):
-                        lines.append(word.group(0) + b"\n")
-                        if i + 1 < len(words):
-                            between_words = content[
-                                word.end() : words[i + 1].start()
-                            ].split(b"\n")
-                            if len(between_words) > 1 and len(between_words[-1]) > 0:
-                                lines.append(between_words[-1] + b"\n")
-
-                await f.writelines(lines)
+                pattern = (
+                    SPLIT_WORD_REGEX
+                    if not path.endswith(".py")
+                    else SPLIT_WORD_STARTING_WHITESPACES_REGEX
+                )
+                await f.writelines(
+                    word.group(0) + b"\n" for word in pattern.finditer(content)
+                )
             else:
                 await f.write(content)
 

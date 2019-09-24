@@ -56,7 +56,7 @@ BINARY_EXTENSIONS = {
 
 def is_binary(path):
     _, ext = os.path.splitext(path)
-    return ext in BINARY_EXTENSIONS
+    return ext.lower() in BINARY_EXTENSIONS
 
 
 class Commit:

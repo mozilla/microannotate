@@ -260,11 +260,14 @@ class Generator:
         # TODO: Use hg author!
         author = pygit2.Signature("Marco Castelluccio", "mcastelluccio@mozilla.com")
 
+        # Remove @ from commit messages to avoid GitHub sending email notifications.
+        desc = commit.desc.replace("@", "")
+
         self.repo.create_commit(
             "HEAD",
             author,
             author,
-            f"{commit.desc}\n\nUltraBlame original commit: {commit.node}",
+            f"{desc}\n\nUltraBlame original commit: {commit.node}",
             tree,
             parent,
         )

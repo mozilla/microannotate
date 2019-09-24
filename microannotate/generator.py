@@ -178,7 +178,8 @@ SPLIT_WORD_REGEX = re.compile(
 )
 
 SPLIT_WORD_STARTING_WHITESPACES_REGEX = re.compile(
-    r"(^[ \t]+|\w+|{})".format(POSSIBLE_TOKENS_REGEX_STR).encode("utf-8"), re.MULTILINE
+    r"(^[ \t]+(?=\S)|\w+|{})".format(POSSIBLE_TOKENS_REGEX_STR).encode("utf-8"),
+    re.MULTILINE,
 )
 
 

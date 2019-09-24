@@ -1239,6 +1239,7 @@ def test_generate_tokenized_python(fake_hg_repo, tmpdir):
 if sys:
     print("hello")
 else:
+    
     print("nope")
 """,
     )
@@ -1270,13 +1271,12 @@ UltraBlame original commit: {revision}"""
 
     with open(os.path.join(git_repo, "file.py"), "r") as f:
         py_file = f.read()
+        print(py_file)
         assert (
             py_file
             == """import
- 
 sys
 if
- 
 sys
 :
     

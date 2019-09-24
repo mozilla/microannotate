@@ -31,7 +31,27 @@ hg_servers_lock = threading.Lock()
 thread_local = threading.local()
 
 
-BINARY_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".ico", ".icns"}
+BINARY_EXTENSIONS = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".ico",
+    ".icns",
+    ".zip",
+    ".gz",
+    ".bz2",
+    ".mp4",
+    ".webm",
+    ".ogv",
+    ".avi",
+    ".mov",
+    ".mp3",
+    ".ogg",
+    ".wav",
+    ".flac",
+}
 
 
 def is_binary(path):

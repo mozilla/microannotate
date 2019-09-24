@@ -31,6 +31,14 @@ hg_servers_lock = threading.Lock()
 thread_local = threading.local()
 
 
+BINARY_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".ico", ".icns"}
+
+
+def is_binary(path):
+    _, ext = os.path.splitext(path)
+    return ext in BINARY_EXTENSIONS
+
+
 class Commit:
     def __init__(self, node, parents, desc):
         self.node = node
@@ -239,7 +247,9 @@ class Generator:
         logger.info(f"Transforming commit {commit.node}")
 
         write_file_futures = [
-            self.write_file(commit, path) for path in commit.files if path != b""
+            self.write_file(commit, path)
+            for path in commit.files
+            if path != b"" and not is_binary(path)
         ]
 
         results = await asyncio.gather(*write_file_futures, return_exceptions=True)

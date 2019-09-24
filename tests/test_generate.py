@@ -1223,3 +1223,92 @@ return
 }
 """
         )
+
+
+def test_generate_tokenized_python(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.py",
+        """import sys
+
+if sys:
+
+    print("hello")
+elif sys != 3:
+    print("maybe")
+else:
+    
+    print("nope")
+""",
+    )
+    revision = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=True,
+        remove_comments=False,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.py
+
+UltraBlame original commit: {revision}"""
+    )
+
+    with open(os.path.join(git_repo, "file.py"), "r") as f:
+        py_file = f.read()
+        assert (
+            py_file
+            == """import
+sys
+if
+sys
+:
+    
+print
+(
+"
+hello
+"
+)
+elif
+sys
+!
+=
+3
+:
+    
+print
+(
+"
+maybe
+"
+)
+else
+:
+    
+print
+(
+"
+nope
+"
+)
+"""  # noqa
+        )

@@ -138,9 +138,6 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
     return x.splitlines()
 
 
-# A regex to split source code by word (where a word can be a variable, a token,
-# or a subset of a token).
-
 POSSIBLE_TOKENS = [
     "{",
     "}",
@@ -171,8 +168,21 @@ POSSIBLE_TOKENS = [
     ";",
 ]
 
+POSSIBLE_TOKENS_REGEX_STR = "|".join(re.escape(c) for c in POSSIBLE_TOKENS)
+
+# A regex to split source code by word (where a word can be a variable, a token,
+# or a subset of a token).
 SPLIT_WORD_REGEX = re.compile(
-    r"(\w+|{})".format("|".join(re.escape(c) for c in POSSIBLE_TOKENS)).encode("utf-8")
+    r"(\w+|{})".format(POSSIBLE_TOKENS_REGEX_STR).encode("utf-8"), re.MULTILINE
+)
+
+# Same regex as before, but considering indentation as a word too (for Python).
+# Indentation is detected by checking if a line starts with white spaces and by
+# using lookahead to find a character which is not a whitespace (so we skip white
+# lines).
+SPLIT_WORD_STARTING_WHITESPACES_REGEX = re.compile(
+    r"(^[ \t]+(?=\S)|\w+|{})".format(POSSIBLE_TOKENS_REGEX_STR).encode("utf-8"),
+    re.MULTILINE,
 )
 
 
@@ -253,8 +263,13 @@ class Generator:
 
         async with aiofiles.open(os.path.join(self.repo.workdir, path), "wb") as f:
             if self.tokenize_enabled:
+                pattern = (
+                    SPLIT_WORD_REGEX
+                    if not path.endswith(".py")
+                    else SPLIT_WORD_STARTING_WHITESPACES_REGEX
+                )
                 await f.writelines(
-                    word.group(0) + b"\n" for word in SPLIT_WORD_REGEX.finditer(content)
+                    word.group(0) + b"\n" for word in pattern.finditer(content)
                 )
             else:
                 await f.write(content)

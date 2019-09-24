@@ -20,6 +20,7 @@ repos:
     rev: v2.3.0
     hooks:
     -   id: trailing-whitespace
+        exclude: tests/test_generate.py
     -   id: check-yaml
     -   id: mixed-line-ending
     -   id: name-tests-test

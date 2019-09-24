@@ -253,9 +253,25 @@ class Generator:
 
         async with aiofiles.open(os.path.join(self.repo.workdir, path), "wb") as f:
             if self.tokenize_enabled:
-                await f.writelines(
-                    word.group(0) + b"\n" for word in SPLIT_WORD_REGEX.finditer(content)
-                )
+                if not path.endswith(".py"):
+                    lines = (
+                        word.group(0) + b"\n"
+                        for word in SPLIT_WORD_REGEX.finditer(content)
+                    )
+                else:
+                    # In Python files, whitespaces are meaningful, so we should not ignore them.
+                    lines = []
+                    words = list(SPLIT_WORD_REGEX.finditer(content))
+                    for i, word in enumerate(words):
+                        lines.append(word.group(0) + b"\n")
+                        if i + 1 < len(words):
+                            whitespace_line = content[
+                                word.end() : words[i + 1].start()
+                            ].replace(b"\n", b"")
+                            if len(whitespace_line):
+                                lines.append(whitespace_line + b"\n")
+
+                await f.writelines(lines)
             else:
                 await f.write(content)
 

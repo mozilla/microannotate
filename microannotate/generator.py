@@ -39,9 +39,14 @@ BINARY_EXTENSIONS = {
     ".bmp",
     ".ico",
     ".icns",
+    ".psd",
+    ".tiff",
     ".zip",
     ".gz",
     ".bz2",
+    ".tar",
+    ".xpi",
+    ".jar",
     ".mp4",
     ".webm",
     ".ogv",
@@ -51,6 +56,13 @@ BINARY_EXTENSIONS = {
     ".ogg",
     ".wav",
     ".flac",
+    ".exe",
+    ".dll",
+    ".so",
+    ".class",
+    ".pdf",
+    ".doc",
+    ".sqlite",
 }
 
 

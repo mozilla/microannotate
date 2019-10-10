@@ -461,4 +461,4 @@ def generate(
     generator = Generator(
         repo_dir, repo_out_dir, rev_start, rev_end, limit, tokenize, remove_comments
     )
-    asyncio.run(generator.go())
+    return asyncio.run(generator.go())

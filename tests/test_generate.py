@@ -97,14 +97,17 @@ int main() {
     )
     revision2 = commit(hg)
 
-    generator.generate(
-        local,
-        git_repo,
-        rev_start=0,
-        rev_end="tip",
-        limit=None,
-        tokenize=True,
-        remove_comments=False,
+    assert (
+        generator.generate(
+            local,
+            git_repo,
+            rev_start=0,
+            rev_end="tip",
+            limit=None,
+            tokenize=True,
+            remove_comments=False,
+        )
+        is True
     )
 
     repo = pygit2.Repository(git_repo)

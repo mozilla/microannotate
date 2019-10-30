@@ -73,6 +73,7 @@ BINARY_EXTENSIONS = {
     ".sqlite",
     ".woff",
     ".woff2",
+    ".crt",
 }
 
 

@@ -66,11 +66,13 @@ BINARY_EXTENSIONS = {
     ".dll",
     ".so",
     ".class",
+    ".binjs",
     ".pdf",
     ".doc",
     ".otf",
     ".sqlite",
     ".woff",
+    ".woff2",
 }
 
 

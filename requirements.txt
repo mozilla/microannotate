@@ -1,5 +1,5 @@
 python-hglib==2.6.1
-pygit2==0.28.2
+pygit2==1.0.0
 tqdm==4.40.0
 aiohttp==3.6.2
 aiofiles==0.4.0

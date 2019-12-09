@@ -109,7 +109,7 @@ tasks:
             - "apt-get -qq update &&
                apt-get -qq install -y python-pip &&
                python2 -m pip install --quiet mercurial==4.8 &&
-               curl -L https://github.com/mozilla/rust-code-analysis/releases/download/v0.0.2/rust-code-analysis-linux-x86_64.tar.bz2 | tar -C /usr/bin -xjv &&
+               curl -L https://github.com/mozilla/rust-code-analysis/releases/download/v0.0.4/rust-code-analysis-linux-x86_64.tar.bz2 | tar -C /usr/bin -xjv &&
                chmod +x /usr/bin/rust-code-analysis &&
                git clone --quiet ${repository} &&
                cd microannotate &&

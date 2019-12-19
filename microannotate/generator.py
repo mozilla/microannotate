@@ -341,7 +341,7 @@ class Generator:
         )
 
     async def go(self):
-        headers = {"Content-Type": "text/plain"}
+        headers = {"Content-Type": "application/octet-stream"}
         async with aiohttp.ClientSession(headers=headers) as session:
             self.session = session
 

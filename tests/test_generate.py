@@ -34,8 +34,8 @@ def fake_hg_repo(tmpdir):
 def add_file(hg, repo_dir, name, contents):
     path = os.path.join(repo_dir, name)
 
-    with open(path, "w") as f:
-        f.write(contents)
+    with open(path, "wb") as f:
+        f.write(contents if not isinstance(contents, str) else contents.encode("utf-8"))
 
     hg.add(files=[bytes(path, "ascii")])
 
@@ -1093,6 +1093,51 @@ int main() {
     cout << "Á" << endl;
     return 0;
 }"""
+        )
+
+
+def test_generate_comments_removed_bad_chars(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg,
+        local,
+        "file.java",
+        b"""private static String /* comment */ utf8String = "Non-Ascii 1 byte chars: \x8e\x89\x8a\x88\x8c\x8d, 2 byte chars: \\u1234 \\u1235 \\u1236";""",
+    )
+    revision = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=False,
+        remove_comments=True,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A file.java
+
+UltraBlame original commit: {revision}"""
+    )
+
+    with open(os.path.join(git_repo, "file.java"), "rb") as f:
+        java_file = f.read()
+        assert (
+            java_file
+            == b"""private static String  utf8String = "Non-Ascii 1 byte chars: \x8e\x89\x8a\x88\x8c\x8d, 2 byte chars: \\u1234 \\u1235 \\u1236";"""
         )
 
 

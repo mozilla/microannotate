@@ -1360,3 +1360,42 @@ nope
 )
 """
         )
+
+
+def test_generate_binary_remove_comments(fake_hg_repo, tmpdir):
+    hg, local = fake_hg_repo
+
+    git_repo = os.path.join(tmpdir.strpath, "repo")
+
+    add_file(
+        hg, local, "an_object_file", b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00",
+    )
+    revision = commit(hg)
+
+    generator.generate(
+        local,
+        git_repo,
+        rev_start=0,
+        rev_end="tip",
+        limit=None,
+        tokenize=False,
+        remove_comments=True,
+    )
+
+    repo = pygit2.Repository(git_repo)
+    commits = list(
+        repo.walk(
+            repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL | pygit2.GIT_SORT_REVERSE
+        )
+    )
+
+    assert (
+        commits[0].message
+        == f"""Commit A an_object_file
+
+UltraBlame original commit: {revision}"""
+    )
+
+    with open(os.path.join(git_repo, "an_object_file"), "rb") as f:
+        obj_file = f.read()
+        assert obj_file == b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00"

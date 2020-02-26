@@ -14,21 +14,21 @@ import pygit2
 from microannotate import annotatehelper, utils
 
 
-def html(repository_dir, rev, path):
-    repository_dir = os.path.realpath(repository_dir)
+def html(repository_dir, microannotated_repository_dir, rev, path):
+    microannotated_repository_dir = os.path.realpath(microannotated_repository_dir)
 
-    repo = pygit2.Repository(repository_dir)
+    repo = pygit2.Repository(microannotated_repository_dir)
 
     proc = subprocess.run(
         ["git", "blame", "--porcelain", rev, path],
-        cwd=repository_dir,
+        cwd=microannotated_repository_dir,
         check=True,
         capture_output=True,
     )
     blame_output = proc.stdout.decode("utf-8")
 
     original_commit_hash = utils.get_original_hash(repo, rev)
-    os.chdir("/home/marco/Documenti/FD/mozilla-central")
+    os.chdir(repository_dir)
     hg = hglib.open(".")
     original_file_content = hg.cat(
         [path.encode("ascii")], rev=original_commit_hash.encode("ascii")

@@ -154,7 +154,7 @@ def get_revs(hg, rev_start=0, rev_end="tip"):
         b"log",
         template="{node}\n",
         no_merges=True,
-        branch="central",
+        branch="tip",
         rev=f"{rev_start}:{rev_end}",
     )
     x = hg.rawcommand(args)

@@ -24,8 +24,6 @@ def fake_hg_repo(tmpdir):
     os.environ["USER"] = "app"
     hg = hglib.open(local)
 
-    hg.branch(b"central")
-
     yield hg, local
 
     hg.close()

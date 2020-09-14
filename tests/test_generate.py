@@ -1366,7 +1366,10 @@ def test_generate_binary_remove_comments(fake_hg_repo, tmpdir):
     git_repo = os.path.join(tmpdir.strpath, "repo")
 
     add_file(
-        hg, local, "an_object_file", b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00",
+        hg,
+        local,
+        "an_object_file",
+        b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00",
     )
     revision = commit(hg)
 

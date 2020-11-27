@@ -355,7 +355,7 @@ class Generator:
                         self.code_analysis_port = utils.get_free_tcp_port()
                         proc = subprocess.Popen(
                             [
-                                "rust-code-analysis",
+                                "rust-code-analysis-cli",
                                 "--serve",
                                 "--port",
                                 str(self.code_analysis_port),

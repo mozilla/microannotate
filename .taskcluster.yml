@@ -108,7 +108,7 @@ tasks:
           command:
             - "/bin/bash"
             - "-lcx"
-            - "curl -L https://github.com/mozilla/rust-code-analysis/releases/download/v0.0.18/rust-code-analysis-linux-x86_64.tar.gz | tar -C /usr/bin -xzv --strip=1 &&
+            - "curl -L https://github.com/mozilla/rust-code-analysis/releases/download/v0.0.19/rust-code-analysis-linux-web-x86_64.tar.gz | tar -C /usr/bin -xzv &&
                git clone --quiet ${repository} &&
                cd microannotate &&
                git -c advice.detachedHead=false checkout ${head_rev} &&

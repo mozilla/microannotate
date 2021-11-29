@@ -1,4 +1,4 @@
-aiofiles~=0.6
+aiofiles~=0.8
 aiohttp~=3.7
 pygit2~=1.5
 python-hglib~=2.6

@@ -30,9 +30,9 @@ tasks:
   in:
     $if: 'tasks_for == "github-push" || (tasks_for == "github-pull-request" && event["action"] in ["opened", "reopened", "synchronize"])'
     then:
-      - taskId: {$eval: as_slugid("lint_task")}
-        created: {$fromNow: ''}
-        deadline: {$fromNow: '1 hour'}
+      - taskId: { $eval: as_slugid("lint_task") }
+        created: { $fromNow: "" }
+        deadline: { $fromNow: "1 hour" }
         provisionerId: proj-relman
         workerType: ci
         payload:
@@ -42,19 +42,19 @@ tasks:
             - "/bin/bash"
             - "-lcx"
             - "git clone --quiet ${repository} &&
-               cd microannotate &&
-               git -c advice.detachedHead=false checkout ${head_rev} &&
-               pip install --quiet -r test-requirements.txt &&
-               pre-commit run -a --show-diff-on-failure"
+              cd microannotate &&
+              git -c advice.detachedHead=false checkout ${head_rev} &&
+              pip install --quiet -r test-requirements.txt &&
+              pre-commit run -a --show-diff-on-failure"
         metadata:
           name: microannotate lint
           description: microannotate lint
           owner: mcastelluccio@mozilla.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
 
-      - taskId: {$eval: as_slugid("packaging_test_task")}
-        created: {$fromNow: ''}
-        deadline: {$fromNow: '1 hour'}
+      - taskId: { $eval: as_slugid("packaging_test_task") }
+        created: { $fromNow: "" }
+        deadline: { $fromNow: "1 hour" }
         provisionerId: proj-relman
         workerType: ci
         payload:
@@ -64,10 +64,10 @@ tasks:
             - "/bin/bash"
             - "-lcx"
             - "git clone --quiet ${repository} &&
-               cd microannotate &&
-               git -c advice.detachedHead=false checkout ${head_rev} &&
-               python setup.py sdist &&
-               pip install dist/microannotate-$(cat VERSION).tar.gz"
+              cd microannotate &&
+              git -c advice.detachedHead=false checkout ${head_rev} &&
+              python setup.py sdist &&
+              pip install dist/microannotate-$(cat VERSION).tar.gz"
         metadata:
           name: microannotate packaging test
           description: microannotate packaging test
@@ -76,9 +76,9 @@ tasks:
 
       - $if: 'tasks_for == "github-push"'
         then:
-          taskId: {$eval: as_slugid("version_check_task")}
-          created: {$fromNow: ''}
-          deadline: {$fromNow: '1 hour'}
+          taskId: { $eval: as_slugid("version_check_task") }
+          created: { $fromNow: "" }
+          deadline: { $fromNow: "1 hour" }
           provisionerId: proj-relman
           workerType: ci
           payload:
@@ -88,18 +88,18 @@ tasks:
               - "/bin/bash"
               - "-lcx"
               - "git clone --quiet ${repository} &&
-                 cd microannotate &&
-                 git -c advice.detachedHead=false checkout ${head_rev} &&
-                 python infra/version_check.py"
+                cd microannotate &&
+                git -c advice.detachedHead=false checkout ${head_rev} &&
+                python infra/version_check.py"
           metadata:
             name: microannotate tag version check
             description: microannotate tag version check
             owner: mcastelluccio@mozilla.com
             source: ${repository}/raw/${head_rev}/.taskcluster.yml
 
-      - taskId: {$eval: as_slugid("tests_task")}
-        created: {$fromNow: ''}
-        deadline: {$fromNow: '1 hour'}
+      - taskId: { $eval: as_slugid("tests_task") }
+        created: { $fromNow: "" }
+        deadline: { $fromNow: "1 hour" }
         provisionerId: proj-relman
         workerType: ci
         payload:
@@ -109,12 +109,12 @@ tasks:
             - "/bin/bash"
             - "-lcx"
             - "curl -L https://github.com/mozilla/rust-code-analysis/releases/download/v0.0.19/rust-code-analysis-linux-web-x86_64.tar.gz | tar -C /usr/bin -xzv &&
-               git clone --quiet ${repository} &&
-               cd microannotate &&
-               git -c advice.detachedHead=false checkout ${head_rev} &&
-               pip install --quiet -r requirements.txt &&
-               pip install --quiet -r test-requirements.txt &&
-               python -m pytest -s -vv tests/test_*.py"
+              git clone --quiet ${repository} &&
+              cd microannotate &&
+              git -c advice.detachedHead=false checkout ${head_rev} &&
+              pip install --quiet -r requirements.txt &&
+              pip install --quiet -r test-requirements.txt &&
+              python -m pytest -s -vv tests/test_*.py"
         metadata:
           name: microannotate tests
           description: microannotate tests
@@ -124,20 +124,19 @@ tasks:
       - $if: 'tasks_for == "github-push" && head_branch[:10] == "refs/tags/"'
         then:
           dependencies:
-            - {$eval: as_slugid("lint_task")}
-            - {$eval: as_slugid("packaging_test_task")}
-            - {$eval: as_slugid("version_check_task")}
-            - {$eval: as_slugid("tests_task")}
+            - { $eval: as_slugid("lint_task") }
+            - { $eval: as_slugid("packaging_test_task") }
+            - { $eval: as_slugid("version_check_task") }
+            - { $eval: as_slugid("tests_task") }
           scopes:
             - secrets:get:project/relman/microannotate/deploy
-          created: {$fromNow: ''}
-          deadline: {$fromNow: '1 hour'}
+          created: { $fromNow: "" }
+          deadline: { $fromNow: "1 hour" }
           provisionerId: proj-relman
           workerType: ci
           payload:
             features:
-              taskclusterProxy:
-                true
+              taskclusterProxy: true
             maxRunTime: 3600
             image: "${taskboot_image}"
             command:

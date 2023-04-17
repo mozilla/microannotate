@@ -1290,7 +1290,7 @@ elif sys != 3:
 else:
     
     print("nope")
-""",
+""",  # noqa: W293
     )
     revision = commit(hg)
 
@@ -1356,7 +1356,7 @@ print
 nope
 "
 )
-"""
+"""  # noqa: W293
         )
 
 

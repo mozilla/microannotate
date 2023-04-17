@@ -3,17 +3,17 @@ repos:
     rev: 5.12.0
     hooks:
       - id: isort
-  - repo: https://github.com/ambv/black
-    rev: 23.1.0
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
     hooks:
       - id: black
   - repo: https://github.com/pycqa/flake8
-    rev: 5.0.4
+    rev: 6.0.0
     hooks:
       - id: flake8
-        additional_dependencies: ['flake8-coding==1.3.2', 'flake8-copyright==0.2.3', 'flake8-debugger==4.1.2', 'flake8-mypy==17.8.0']
+        additional_dependencies: ['flake8-coding==1.3.2', 'flake8-copyright==0.2.4', 'flake8-debugger==4.1.2', 'flake8-mypy==17.8.0']
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v4.4.0
     hooks:
       - id: check-ast
       - id: check-docstring-first
@@ -30,19 +30,19 @@ repos:
       - id: check-json
       - id: requirements-txt-fixer
   - repo: https://github.com/codespell-project/codespell
-    rev: v1.17.1
+    rev: v2.2.4
     hooks:
       - id: codespell
   - repo: https://github.com/marco-c/taskcluster_yml_validator
-    rev: v0.0.7
+    rev: v0.0.9
     hooks:
       - id: taskcluster_yml
   - repo: https://github.com/asottile/yesqa
-    rev: v1.2.2
+    rev: v1.4.0
     hooks:
       - id: yesqa
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.950
+    rev: v1.2.0
     hooks:
       - id: mypy
         additional_dependencies:
